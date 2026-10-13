@@ -17,7 +17,7 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 async def get_my_creator_profile(user: dict = Depends(require_role("creator"))):
     sb = get_supabase()
     row = sb.table("creator_profiles").select("*").eq("user_id", user["id"]).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Creator profile not found. Complete onboarding.")
     return CreatorProfileOut(**row.data)
 
@@ -26,7 +26,7 @@ async def get_my_creator_profile(user: dict = Depends(require_role("creator"))):
 async def create_creator_profile(req: CreatorProfileCreate, user: dict = Depends(require_role("creator"))):
     sb = get_supabase()
     existing = sb.table("creator_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if existing.data:
+    if existing and existing.data:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Creator profile already exists. Use PATCH to update.")
 
     data = req.model_dump()
@@ -42,7 +42,7 @@ async def create_creator_profile(req: CreatorProfileCreate, user: dict = Depends
 async def update_creator_profile(req: CreatorProfileUpdate, user: dict = Depends(require_role("creator"))):
     sb = get_supabase()
     existing = sb.table("creator_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not existing.data:
+    if not existing or not existing.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Profile not found")
 
     updates = {k: v for k, v in req.model_dump(exclude_none=True).items()}
@@ -57,7 +57,7 @@ async def update_creator_profile(req: CreatorProfileUpdate, user: dict = Depends
 async def get_creator_profile(creator_id: str):
     sb = get_supabase()
     row = sb.table("creator_profiles").select("*").eq("id", creator_id).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Creator not found")
     return CreatorProfileOut(**row.data)
 
@@ -107,7 +107,7 @@ def _validate_image(file: UploadFile):
 async def get_my_brand_profile(user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     row = sb.table("brand_profiles").select("*").eq("user_id", user["id"]).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Brand profile not found. Complete onboarding.")
     return BrandProfileOut(**row.data)
 
@@ -116,7 +116,7 @@ async def get_my_brand_profile(user: dict = Depends(require_role("brand"))):
 async def create_brand_profile(req: BrandProfileCreate, user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     existing = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if existing.data:
+    if existing and existing.data:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Brand profile already exists.")
 
     data = req.model_dump()

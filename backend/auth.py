@@ -4,7 +4,7 @@ import uuid
 from typing import Optional
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from database import get_supabase
+from database import get_supabase, get_anon_supabase
 from config import get_settings
 from schemas import RegisterRequest, LoginRequest, AuthResponse, UserOut
 
@@ -13,7 +13,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 async def register_user(req: RegisterRequest) -> AuthResponse:
     sb = get_supabase()
-    # Create auth user via Supabase Auth
+    # Create auth user via Supabase Auth Admin API
     try:
         result = sb.auth.admin.create_user({
             "email": req.email,
@@ -22,7 +22,10 @@ async def register_user(req: RegisterRequest) -> AuthResponse:
             "user_metadata": {"full_name": req.full_name, "role": req.role}
         })
     except Exception as e:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e))
+        err_msg = str(e)
+        if "already been registered" in err_msg.lower() or "already exists" in err_msg.lower():
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="An account with this email already exists.")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=err_msg)
 
     user_id = result.user.id
 
@@ -34,16 +37,17 @@ async def register_user(req: RegisterRequest) -> AuthResponse:
         "role": req.role,
     }).execute()
 
-    # Sign in immediately to get token
+    # Sign in with anon client to get session token without mutating admin client
     return await _sign_in(req.email, req.password, req.role, req.full_name, user_id)
 
 
 async def login_user(req: LoginRequest) -> AuthResponse:
     sb = get_supabase()
+    anon_sb = get_anon_supabase()
     try:
-        result = sb.auth.sign_in_with_password({"email": req.email, "password": req.password})
+        result = anon_sb.auth.sign_in_with_password({"email": req.email, "password": req.password})
     except Exception as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
 
     user_id = result.user.id
     access_token = result.session.access_token
@@ -62,8 +66,8 @@ async def login_user(req: LoginRequest) -> AuthResponse:
 
 
 async def _sign_in(email: str, password: str, role: str, full_name: str, user_id: str) -> AuthResponse:
-    sb = get_supabase()
-    result = sb.auth.sign_in_with_password({"email": email, "password": password})
+    anon_sb = get_anon_supabase()
+    result = anon_sb.auth.sign_in_with_password({"email": email, "password": password})
     return AuthResponse(
         access_token=result.session.access_token,
         user_id=user_id,

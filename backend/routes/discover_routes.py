@@ -59,7 +59,7 @@ async def discover_creators(
     campaign = None
     if campaign_id:
         camp_row = sb.table("campaigns").select("*").eq("id", campaign_id).maybe_single().execute()
-        campaign = camp_row.data
+        campaign = camp_row.data if camp_row else None
 
     # Calculate match scores
     scored: list[tuple[dict, int, list]] = []

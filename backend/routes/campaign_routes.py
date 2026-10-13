@@ -18,7 +18,7 @@ def _make_code() -> str:
 def _get_brand_id(user_id: str) -> str:
     sb = get_supabase()
     row = sb.table("brand_profiles").select("id").eq("user_id", user_id).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Brand profile not found. Complete onboarding first.")
     return row.data["id"]
 
@@ -51,7 +51,7 @@ async def list_my_campaigns(user: dict = Depends(require_role("brand"))):
 async def get_campaign(campaign_id: str):
     sb = get_supabase()
     row = sb.table("campaigns").select("*").eq("id", campaign_id).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Campaign not found")
     camp = row.data
     # Only expose drafts to owners (handled by RLS; here we expose freely if published)
@@ -66,7 +66,7 @@ async def get_campaign_full(campaign_id: str, user: dict = Depends(require_role(
     brand_id = _get_brand_id(user["id"])
     sb = get_supabase()
     row = sb.table("campaigns").select("*").eq("id", campaign_id).eq("brand_id", brand_id).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Campaign not found or not yours")
     return CampaignOut(**row.data)
 
@@ -91,7 +91,7 @@ async def update_campaign(campaign_id: str, req: CampaignUpdate, user: dict = De
     brand_id = _get_brand_id(user["id"])
     sb = get_supabase()
     existing = sb.table("campaigns").select("brand_id, status").eq("id", campaign_id).maybe_single().execute()
-    if not existing.data or existing.data["brand_id"] != brand_id:
+    if not existing or not existing.data or existing.data["brand_id"] != brand_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your campaign")
     if existing.data["status"] in ("completed", "closed"):
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Cannot edit a completed or closed campaign")
@@ -108,7 +108,7 @@ async def publish_campaign(campaign_id: str, user: dict = Depends(require_role("
     brand_id = _get_brand_id(user["id"])
     sb = get_supabase()
     existing = sb.table("campaigns").select("brand_id, status, title").eq("id", campaign_id).maybe_single().execute()
-    if not existing.data or existing.data["brand_id"] != brand_id:
+    if not existing or not existing.data or existing.data["brand_id"] != brand_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your campaign")
     if existing.data["status"] not in ("draft",):
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Campaign is already published")
@@ -125,7 +125,7 @@ async def close_campaign(campaign_id: str, user: dict = Depends(require_role("br
     brand_id = _get_brand_id(user["id"])
     sb = get_supabase()
     existing = sb.table("campaigns").select("brand_id").eq("id", campaign_id).maybe_single().execute()
-    if not existing.data or existing.data["brand_id"] != brand_id:
+    if not existing or not existing.data or existing.data["brand_id"] != brand_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your campaign")
 
     row = sb.table("campaigns").update({"status": "closed", "status_label": "Closed"}).eq("id", campaign_id).execute()

@@ -17,7 +17,7 @@ shortlist_router = APIRouter(prefix="/shortlists")
 async def get_shortlist(user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not brand_row.data:
+    if not brand_row or not brand_row.data:
         return []
     rows = sb.table("shortlists").select("creator_id").eq("brand_id", brand_row.data["id"]).execute()
     return [r["creator_id"] for r in rows.data]
@@ -27,12 +27,12 @@ async def get_shortlist(user: dict = Depends(require_role("brand"))):
 async def toggle_shortlist(creator_id: str, user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not brand_row.data:
+    if not brand_row or not brand_row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Brand profile not found")
     brand_id = brand_row.data["id"]
 
     existing = sb.table("shortlists").select("id").eq("brand_id", brand_id).eq("creator_id", creator_id).maybe_single().execute()
-    if existing.data:
+    if existing and existing.data:
         sb.table("shortlists").delete().eq("id", existing.data["id"]).execute()
         return {"shortlisted": False}
     else:
@@ -49,23 +49,23 @@ invitation_router = APIRouter(prefix="/invitations")
 async def send_invitation(req: InvitationCreate, user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not brand_row.data:
+    if not brand_row or not brand_row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Brand profile not found")
     brand_id = brand_row.data["id"]
 
     # Verify campaign ownership
     camp = sb.table("campaigns").select("brand_id").eq("id", req.campaign_id).maybe_single().execute()
-    if not camp.data or camp.data["brand_id"] != brand_id:
+    if not camp or not camp.data or camp.data["brand_id"] != brand_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your campaign")
 
     # Verify creator exists
     creator = sb.table("creator_profiles").select("id").eq("id", req.creator_id).maybe_single().execute()
-    if not creator.data:
+    if not creator or not creator.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Creator not found")
 
     # Check for duplicate
     dup = sb.table("invitations").select("id").eq("campaign_id", req.campaign_id).eq("creator_id", req.creator_id).maybe_single().execute()
-    if dup.data:
+    if dup and dup.data:
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Invitation already sent to this creator for this campaign")
 
     data = {
@@ -84,12 +84,12 @@ async def get_my_invitations(user: dict = Depends(get_current_user)):
     sb = get_supabase()
     if user["role"] == "creator":
         creator_row = sb.table("creator_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-        if not creator_row.data:
+        if not creator_row or not creator_row.data:
             return []
         rows = sb.table("invitations").select("*").eq("creator_id", creator_row.data["id"]).order("created_at", desc=True).execute()
     else:
         brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-        if not brand_row.data:
+        if not brand_row or not brand_row.data:
             return []
         rows = sb.table("invitations").select("*").eq("brand_id", brand_row.data["id"]).order("created_at", desc=True).execute()
     return [InvitationOut(**r) for r in rows.data]
@@ -103,12 +103,12 @@ async def respond_to_invitation(
 ):
     sb = get_supabase()
     creator_row = sb.table("creator_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not creator_row.data:
+    if not creator_row or not creator_row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Creator profile not found")
     creator_id = creator_row.data["id"]
 
     inv = sb.table("invitations").select("*").eq("id", invitation_id).eq("creator_id", creator_id).maybe_single().execute()
-    if not inv.data:
+    if not inv or not inv.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Invitation not found")
     if inv.data["status"] != "pending":
         raise HTTPException(status.HTTP_409_CONFLICT, detail="Invitation already responded to")
@@ -143,12 +143,12 @@ async def get_my_engagements(user: dict = Depends(get_current_user)):
     sb = get_supabase()
     if user["role"] == "creator":
         creator_row = sb.table("creator_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-        if not creator_row.data:
+        if not creator_row or not creator_row.data:
             return []
         rows = sb.table("engagements").select("*").eq("creator_id", creator_row.data["id"]).execute()
     else:
         brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-        if not brand_row.data:
+        if not brand_row or not brand_row.data:
             return []
         rows = sb.table("engagements").select("*").eq("brand_id", brand_row.data["id"]).execute()
     return [EngagementOut(**r) for r in rows.data]
@@ -158,11 +158,11 @@ async def get_my_engagements(user: dict = Depends(get_current_user)):
 async def complete_engagement(engagement_id: str, user: dict = Depends(require_role("brand"))):
     sb = get_supabase()
     brand_row = sb.table("brand_profiles").select("id").eq("user_id", user["id"]).maybe_single().execute()
-    if not brand_row.data:
+    if not brand_row or not brand_row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Brand profile not found")
 
     eng = sb.table("engagements").select("*").eq("id", engagement_id).eq("brand_id", brand_row.data["id"]).maybe_single().execute()
-    if not eng.data:
+    if not eng or not eng.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Engagement not found")
 
     row = sb.table("engagements").update({"status": "completed"}).eq("id", engagement_id).execute()

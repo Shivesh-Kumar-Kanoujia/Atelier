@@ -51,9 +51,11 @@ async function apiFetch(path, options = {}) {
   });
 
   if (res.status === 401) {
-    auth.clearToken();
-    window.location.hash = '#login';
-    throw new Error('Session expired. Please log in again.');
+    if (path !== '/auth/login' && path !== '/auth/register') {
+      auth.clearToken();
+      window.location.hash = '#login';
+      throw new Error('Session expired. Please log in again.');
+    }
   }
 
   if (!res.ok) {

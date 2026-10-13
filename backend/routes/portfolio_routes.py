@@ -11,7 +11,7 @@ router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 def _get_creator_id(user_id: str) -> str:
     sb = get_supabase()
     row = sb.table("creator_profiles").select("id").eq("user_id", user_id).maybe_single().execute()
-    if not row.data:
+    if not row or not row.data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Creator profile not found. Complete onboarding first.")
     return row.data["id"]
 
@@ -39,7 +39,7 @@ async def update_portfolio_item(item_id: str, req: PortfolioItemCreate, user: di
     sb = get_supabase()
     # Ownership check
     existing = sb.table("portfolio_items").select("creator_id").eq("id", item_id).maybe_single().execute()
-    if not existing.data or existing.data["creator_id"] != creator_id:
+    if not existing or not existing.data or existing.data["creator_id"] != creator_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your portfolio item")
 
     updates = {k: v for k, v in req.model_dump(exclude_none=True).items()}
@@ -52,7 +52,7 @@ async def delete_portfolio_item(item_id: str, user: dict = Depends(require_role(
     creator_id = _get_creator_id(user["id"])
     sb = get_supabase()
     existing = sb.table("portfolio_items").select("creator_id, media_url").eq("id", item_id).maybe_single().execute()
-    if not existing.data or existing.data["creator_id"] != creator_id:
+    if not existing or not existing.data or existing.data["creator_id"] != creator_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your portfolio item")
 
     # Clean up storage if there's a media file
@@ -76,7 +76,7 @@ async def upload_portfolio_media(
     creator_id = _get_creator_id(user["id"])
     sb = get_supabase()
     existing = sb.table("portfolio_items").select("creator_id").eq("id", item_id).maybe_single().execute()
-    if not existing.data or existing.data["creator_id"] != creator_id:
+    if not existing or not existing.data or existing.data["creator_id"] != creator_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not your portfolio item")
 
     allowed = {"image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"}

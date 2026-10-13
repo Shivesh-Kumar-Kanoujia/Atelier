@@ -220,14 +220,14 @@ class BriefGenerateRequest(BaseModel):
 
 class AIBriefDraft(BaseModel):
     title: str
-    client: str
+    client: Optional[str] = "Confidential Client"
     objective: str
     content_type: str
     description: str
-    styles: list[str]
-    aspect_ratios: list[str]
-    deliverables: list[str]
-    required_tools: list[str]
+    styles: list[str] = Field(default_factory=list)
+    aspect_ratios: list[str] = Field(default_factory=list)
+    deliverables: list[str] = Field(default_factory=list)
+    required_tools: list[str] = Field(default_factory=list)
     budget_tier: Optional[str] = None
     deadline: Optional[str] = None
     commercial_rights: Optional[str] = None

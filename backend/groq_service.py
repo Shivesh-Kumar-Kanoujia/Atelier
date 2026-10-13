@@ -92,6 +92,8 @@ async def generate_brief_draft(req: BriefGenerateRequest) -> AIBriefDraft:
 
     # Validate and build response
     try:
+        if not data.get("client"):
+            data["client"] = req.brand_name or "Confidential Client"
         draft = AIBriefDraft(**data)
     except Exception as e:
         raise HTTPException(
