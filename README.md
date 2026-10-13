@@ -77,7 +77,7 @@ An editorial, gallery-grade computational cinema and generative visual art marke
 
 ### Installation & Development
 ```bash
-# Navigate to repository
+# Navigate to directory
 cd hacXLerate-
 
 # Install dependencies
