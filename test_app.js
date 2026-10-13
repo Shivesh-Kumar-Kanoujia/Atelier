@@ -5,6 +5,9 @@ import { renderCreatorProfileView } from './src/views/CreatorProfileView.js';
 import { renderPostBriefView } from './src/views/PostBriefView.js';
 import { renderCompanyDashboardView } from './src/views/CompanyDashboardView.js';
 import { renderBriefDetailView } from './src/views/BriefDetailView.js';
+import { renderAuthView } from './src/views/AuthView.js';
+import { renderCreatorDashboardView } from './src/views/CreatorDashboardView.js';
+import { renderOnboardingView } from './src/views/OnboardingView.js';
 import { renderHeader } from './src/components/Header.js';
 import { renderFooter } from './src/components/Footer.js';
 
@@ -89,12 +92,38 @@ try {
 try {
   const headerHtml = renderHeader('explore');
   const footerHtml = renderFooter();
-  assert(headerHtml.includes('ATELIER') && footerHtml.includes('ATELIER INC'), 'Header & Footer render successfully');
+  assert(headerHtml.includes('ATELIER') && headerHtml.includes('Where AI Creativity Meets Brands'), 'Header includes Atelier and tagline');
+  assert(footerHtml.includes('WHERE AI CREATIVITY MEETS BRANDS') && footerHtml.includes('KAMPUS.VC'), 'Footer includes tagline and Kampus.VC problem statement attribution');
 } catch (e) {
   assert(false, `Header/Footer failed to render: ${e.message}`);
 }
 
-// 5. Brief Publication & Proposal Acceptance
+// 6. Auth, Onboarding & Creator Studio View Tests
+try {
+  const loginHtml = renderAuthView('login');
+  const registerHtml = renderAuthView('register');
+  assert(loginHtml.includes('Sign in') && registerHtml.includes('Create Account') && registerHtml.includes('Creator') && registerHtml.includes('Brand / Org'), 'AuthView renders login and registration with both roles');
+} catch (e) {
+  assert(false, `AuthView failed to render: ${e.message}`);
+}
+
+try {
+  const creatorDashHtml = renderCreatorDashboardView();
+  assert(creatorDashHtml.includes('Creator Studio') && creatorDashHtml.includes('Invitations') && creatorDashHtml.includes('Engagements'), 'CreatorDashboardView renders studio panels');
+} catch (e) {
+  assert(false, `CreatorDashboardView failed to render: ${e.message}`);
+}
+
+try {
+  const creatorOnbHtml = renderOnboardingView('creator');
+  const brandOnbHtml = renderOnboardingView('brand');
+  assert(creatorOnbHtml.includes('Complete Your Creator Dossier') && creatorOnbHtml.includes('Primary AI Tools'), 'Creator Onboarding renders correctly');
+  assert(brandOnbHtml.includes('Set Up Your Brand Profile') && brandOnbHtml.includes('Organization / Brand Name'), 'Brand Onboarding renders correctly');
+} catch (e) {
+  assert(false, `OnboardingView failed to render: ${e.message}`);
+}
+
+// 7. Brief Publication & Proposal Acceptance
 const newBrief = store.publishBrief({
   title: 'Automated Test Brand Campaign',
   client: 'Test Brand Co',

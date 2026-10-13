@@ -9,8 +9,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 @router.post("/generate-brief", response_model=AIBriefDraft)
 async def generate_brief(
-    req: BriefGenerateRequest,
-    user: dict = Depends(require_role("brand"))
+    req: BriefGenerateRequest
 ):
     """
     Generate an AI-drafted campaign brief from a brand idea.

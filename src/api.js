@@ -1,5 +1,5 @@
 // Atelier API Client — connects frontend to FastAPI backend
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://localhost:8000';
 
 const TOKEN_KEY = 'atelier_token';
 const USER_KEY = 'atelier_user';

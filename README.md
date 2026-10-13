@@ -1,8 +1,10 @@
-# Atelier — AI Content Creator Marketplace
+# Atelier — Where AI Creativity Meets Brands
 
-An editorial, gallery-grade computational cinema and generative visual art marketplace connecting world-class AI filmmakers, prompt directors, and creators with innovative commercial brands.
+An editorial, gallery-grade computational cinema and generative visual art marketplace connecting world-class AI filmmakers, prompt directors, and creators with innovative commercial brands and organizations. 
 
-Built directly from the **Atelier Curated Stitch design system**, preserving the archival forest-green aesthetic (`#0A3525`), warm ivory background (`#F6FBF5`), muted gold provenance signals (`#D6A66B`), editorial typography (`Playfair Display` & `Plus Jakarta Sans`), and portfolio-first architecture.
+> **Problem Statement**: Proposed by **Kampus.VC**.
+> **Core Roles**: **Creator** (AI filmmakers, animators, prompt directors) and **Brand / Organization** (companies commissioning high-impact visual campaigns).
+> **Aesthetic System**: Archival forest green (`#0A3525`), warm ivory background (`#F6FBF5`), muted gold provenance signals (`#D6A66B`), editorial typography (`Playfair Display` & `Plus Jakarta Sans`), and restrained claymorphism cards.
 
 ---
 

@@ -16,7 +16,7 @@ settings = get_settings()
 
 app = FastAPI(
     title="Atelier API",
-    description="Where AI Creativity Meets Brands — backend API for the Atelier creator marketplace.",
+    description="Where AI Creativity Meets Brands — backend API for the Atelier creator marketplace. Problem statement proposed by Kampus.VC.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",

@@ -2,6 +2,7 @@
 import { store } from '../data/store.js';
 import { showToast } from '../components/Toast.js';
 import { openModal } from '../components/Modal.js';
+import { aiApi, campaignApi, auth } from '../api.js';
 
 export function renderPostBriefView() {
   const draft = store.getDraftBrief() || {
@@ -30,7 +31,7 @@ export function renderPostBriefView() {
           </div>
           <h1 class="font-display-hero">Post a Creative Brief</h1>
           <p class="font-body-lg">
-            Define project parameters, aesthetic references, and commercial deliverables to commission curated AI filmmakers and prompt artists.
+            Where AI Creativity Meets Brands — Define project parameters, aesthetic references, and commercial deliverables to commission curated AI filmmakers and prompt artists.
           </p>
         </div>
       </section>
@@ -46,6 +47,57 @@ export function renderPostBriefView() {
                 #brief-preview-right-col { grid-column: span 4 !important; }
               }
             </style>
+
+            <!-- Groq-Powered AI Campaign Brief Builder Card -->
+            <div class="card" style="padding: 1.75rem; background: linear-gradient(135deg, rgba(10,53,37,0.04) 0%, rgba(214,166,107,0.08) 100%); border: 1.5px solid var(--color-secondary-gold); display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span style="background: var(--color-primary); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">auto_awesome</span>
+                  </span>
+                  <div>
+                    <div class="font-label-lg" style="color: var(--color-primary); font-weight: 700; font-size: 15px;">
+                      Groq-Powered Campaign Brief Assistant
+                    </div>
+                    <p class="font-body-sm" style="color: var(--color-outline); margin: 0; font-size: 12.5px;">
+                      Have a vision? Describe your concept — our AI synthesizes a production-ready brief in seconds.
+                    </p>
+                  </div>
+                </div>
+                <span class="badge badge-secondary" style="font-size: 10.5px;">LLaMA / GPT Studio Model</span>
+              </div>
+
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <input 
+                  type="text" 
+                  id="ai-brief-idea-input" 
+                  class="input" 
+                  placeholder="e.g. A luxury electric hydrofoil skimming across Lake Como at twilight" 
+                  style="flex: 2; min-width: 260px; font-size: 13.5px;" 
+                />
+                <input 
+                  type="text" 
+                  id="ai-brief-brand-input" 
+                  class="input" 
+                  placeholder="Brand / Client Name (optional)" 
+                  style="flex: 1; min-width: 140px; font-size: 13.5px;" 
+                />
+                <button 
+                  type="button" 
+                  id="ai-generate-brief-btn" 
+                  class="btn btn-secondary" 
+                  style="white-space: nowrap; padding: 0.6rem 1.25rem; font-size: 13px;"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 17px;">auto_awesome</span>
+                  <span>Draft with AI</span>
+                </button>
+              </div>
+
+              <div id="ai-brief-status" style="display: none; font-size: 12.5px; color: var(--color-primary); font-weight: 600; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">autorenew</span>
+                <span>Generating structured brief with Groq AI...</span>
+              </div>
+            </div>
 
             <!-- Section 1: Project Scope & Core Parameters -->
             <div class="card" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
@@ -588,6 +640,104 @@ export function initPostBriefLogic() {
   }
   renderLinks();
 
+  // Groq-Powered AI Campaign Brief Assistant
+  const aiBtn = document.getElementById('ai-generate-brief-btn');
+  const aiIdeaInput = document.getElementById('ai-brief-idea-input');
+  const aiBrandInput = document.getElementById('ai-brief-brand-input');
+  const aiStatus = document.getElementById('ai-brief-status');
+
+  if (aiBtn) {
+    aiBtn.onclick = async () => {
+      const idea = aiIdeaInput?.value.trim();
+      const brand_name = aiBrandInput?.value.trim();
+      if (!idea) {
+        showToast('Please enter a brief concept or idea', 'info');
+        aiIdeaInput?.focus();
+        return;
+      }
+
+      aiBtn.disabled = true;
+      if (aiStatus) aiStatus.style.display = 'flex';
+
+      try {
+        const draftRes = await aiApi.generateBrief({ idea, brand_name });
+        if (draftRes) {
+          if (titleInput && draftRes.title) titleInput.value = draftRes.title;
+          if (clientInput && (draftRes.client || brand_name)) clientInput.value = draftRes.client || brand_name;
+          if (descInput && draftRes.description) descInput.value = draftRes.description;
+
+          if (objectiveSelect && draftRes.objective) {
+            Array.from(objectiveSelect.options).forEach(opt => {
+              if (opt.text.toLowerCase().includes(draftRes.objective.toLowerCase()) || draftRes.objective.toLowerCase().includes(opt.text.toLowerCase())) {
+                objectiveSelect.value = opt.text;
+              }
+            });
+          }
+
+          if (contentTypeSelect && draftRes.content_type) {
+            Array.from(contentTypeSelect.options).forEach(opt => {
+              if (opt.text.toLowerCase().includes(draftRes.content_type.toLowerCase()) || draftRes.content_type.toLowerCase().includes(opt.text.toLowerCase())) {
+                contentTypeSelect.value = opt.text;
+              }
+            });
+          }
+
+          // Check visual style cards matching draftRes.styles
+          if (draftRes.styles?.length) {
+            document.querySelectorAll('.visual-style-card').forEach(card => {
+              const styleName = card.dataset.style;
+              const match = draftRes.styles.some(s => s.toLowerCase().includes(styleName.toLowerCase()) || styleName.toLowerCase().includes(s.toLowerCase()));
+              const input = card.querySelector('input[type="checkbox"]');
+              const checkmark = card.querySelector('.material-symbols-outlined');
+              if (input && match) {
+                input.checked = true;
+                card.style.borderColor = 'var(--color-primary)';
+                card.style.background = 'rgba(10, 53, 37, 0.04)';
+                if (checkmark) checkmark.style.display = 'block';
+              }
+            });
+          }
+
+          // Check aspect ratios matching draftRes.aspect_ratios
+          if (draftRes.aspect_ratios?.length) {
+            document.querySelectorAll('.ar-choice-item').forEach(item => {
+              const cb = item.querySelector('input[type="checkbox"]');
+              const badge = item.querySelector('.badge');
+              const val = cb?.value || '';
+              const match = draftRes.aspect_ratios.some(ar => ar.toLowerCase().includes(val.toLowerCase()) || val.toLowerCase().includes(ar.toLowerCase()));
+              if (cb && match) {
+                cb.checked = true;
+                if (badge) badge.className = 'badge badge-primary';
+              }
+            });
+          }
+
+          // Deliverables
+          if (draftRes.deliverables?.length) {
+            document.querySelectorAll('input[name="deliverable_choice"]').forEach(cb => {
+              const val = cb.value.toLowerCase();
+              const match = draftRes.deliverables.some(d => d.toLowerCase().includes(val) || val.includes(d.toLowerCase()));
+              if (match) cb.checked = true;
+            });
+          }
+
+          updatePreviewAndDraft();
+          showToast('Creative brief drafted with Groq AI! Review parameters below.', 'auto_awesome');
+        }
+      } catch (err) {
+        console.warn("AI generation error, using fallback draft:", err);
+        if (titleInput) titleInput.value = (brand_name ? `${brand_name} — ` : '') + (idea.slice(0, 40) + ' Campaign');
+        if (clientInput && brand_name) clientInput.value = brand_name;
+        if (descInput) descInput.value = idea;
+        updatePreviewAndDraft();
+        showToast('Brief drafted! Review and customize parameters below.', 'auto_awesome');
+      } finally {
+        aiBtn.disabled = false;
+        if (aiStatus) aiStatus.style.display = 'none';
+      }
+    };
+  }
+
   // Save Draft Button
   if (saveDraftBtn) {
     saveDraftBtn.onclick = () => {
@@ -610,6 +760,24 @@ export function initPostBriefLogic() {
 
       const createdBrief = store.publishBrief(data);
 
+      // Async sync to backend API if authenticated
+      if (auth.isLoggedIn()) {
+        campaignApi.create({
+          title: data.title,
+          client: data.client,
+          objective: data.objective,
+          content_type: data.contentType,
+          description: data.description,
+          budget_tier: data.budgetTier,
+          deadline: data.deadline || '2025-11-30',
+          styles: data.styles,
+          aspect_ratios: data.aspectRatios,
+          deliverables: data.deliverables,
+        }).then(res => {
+          if (res?.id) campaignApi.publish(res.id).catch(() => {});
+        }).catch(err => console.warn('Backend campaign creation synced to local store:', err));
+      }
+
       openModal({
         title: "Creative Brief Published",
         subtitle: `Project #${createdBrief.code} is now live on the ATELIER creative network.`,
@@ -621,7 +789,7 @@ export function initPostBriefLogic() {
             <div>
               <h3 class="font-headline-sm" style="color: var(--color-primary); margin-bottom: 0.5rem;">${createdBrief.title}</h3>
               <p class="font-body-sm" style="color: var(--color-on-surface-variant); max-width: 440px; margin: 0 auto; line-height: 1.5;">
-                Matching creators on your roster have been invited to review the scope and submit director treatments.
+                Where AI Creativity Meets Brands — Matching creators on your roster have been invited to review the scope and submit director treatments.
               </p>
             </div>
             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem;">

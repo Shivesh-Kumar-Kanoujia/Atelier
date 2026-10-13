@@ -8,7 +8,10 @@ export function renderFooter() {
             <div style="font-family: var(--font-headline); font-size: 20px; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem;">
               ATELIER
             </div>
-            <p class="font-body-sm" style="color: var(--color-on-surface-variant); line-height: 1.6;">
+            <p class="font-body-sm" style="color: var(--color-on-surface-variant); line-height: 1.6; margin-bottom: 0.5rem; font-weight: 600;">
+              Where AI Creativity Meets Brands.
+            </p>
+            <p class="font-body-sm" style="color: var(--color-outline); line-height: 1.5; font-size: 12.5px;">
               Curated marketplace for generative filmmakers, AI cinematographers, and innovative brands. Preserving provenance, elevating prompt direction, and connecting visionaries.
             </p>
           </div>
@@ -21,6 +24,7 @@ export function renderFooter() {
               <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 13px;">
                 <li><a href="#explore" class="hover-underline" style="color: var(--color-on-surface-variant);">Explore Creators</a></li>
                 <li><a href="#dashboard" class="hover-underline" style="color: var(--color-on-surface-variant);">Company Dashboard</a></li>
+                <li><a href="#creator-dashboard" class="hover-underline" style="color: var(--color-on-surface-variant);">Creator Studio</a></li>
                 <li><a href="#brief/brief-solaar-ev" class="hover-underline" style="color: var(--color-on-surface-variant);">Open Briefs</a></li>
                 <li><a href="#post-brief" class="hover-underline" style="color: var(--color-on-surface-variant);">Post a Brief</a></li>
               </ul>
@@ -41,8 +45,8 @@ export function renderFooter() {
         </div>
 
         <div style="border-top: 1px solid var(--color-surface-container-high); padding-top: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; font-size: 11px; color: var(--color-outline); letter-spacing: 0.04em;">
-          <span>© 2025 ATELIER INC. ALL RIGHTS RESERVED.</span>
-          <span style="letter-spacing: 0.1em; text-transform: uppercase;">STUDENT PROJECT MVP • HACKATHON EDITION</span>
+          <span>© 2025 ATELIER INC. ALL RIGHTS RESERVED. WHERE AI CREATIVITY MEETS BRANDS.</span>
+          <span style="letter-spacing: 0.06em;">PROBLEM STATEMENT PROPOSED BY KAMPUS.VC</span>
         </div>
       </div>
     </footer>

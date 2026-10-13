@@ -5,8 +5,12 @@ import { renderExploreCreatorsView, initExploreCreatorsLogic } from './views/Exp
 import { renderCreatorProfileView, initCreatorProfileLogic } from './views/CreatorProfileView.js';
 import { renderPostBriefView, initPostBriefLogic } from './views/PostBriefView.js';
 import { renderCompanyDashboardView, initCompanyDashboardLogic } from './views/CompanyDashboardView.js';
+import { renderCreatorDashboardView, initCreatorDashboardLogic } from './views/CreatorDashboardView.js';
 import { renderBriefDetailView, initBriefDetailLogic } from './views/BriefDetailView.js';
+import { renderAuthView, initAuthLogic } from './views/AuthView.js';
+import { renderOnboardingView, initOnboardingLogic } from './views/OnboardingView.js';
 import { store } from './data/store.js';
+import { auth } from './api.js';
 
 export function initRouter() {
   const appContainer = document.getElementById('app');
@@ -32,9 +36,25 @@ export function initRouter() {
     } else if (route === 'dashboard') {
       viewHtml = renderCompanyDashboardView();
       initLogic = initCompanyDashboardLogic;
+    } else if (route === 'creator-dashboard') {
+      // Guard: if not logged in, allow guest preview or prompt login
+      viewHtml = renderCreatorDashboardView();
+      initLogic = initCreatorDashboardLogic;
     } else if (route === 'brief') {
       viewHtml = renderBriefDetailView(param || 'brief-solaar-ev');
       initLogic = () => initBriefDetailLogic(param || 'brief-solaar-ev');
+    } else if (route === 'login') {
+      viewHtml = renderAuthView('login');
+      initLogic = () => initAuthLogic('login');
+    } else if (route === 'register') {
+      viewHtml = renderAuthView('register');
+      initLogic = () => initAuthLogic('register');
+    } else if (route === 'onboarding-creator') {
+      viewHtml = renderOnboardingView('creator');
+      initLogic = () => initOnboardingLogic('creator');
+    } else if (route === 'onboarding-brand') {
+      viewHtml = renderOnboardingView('brand');
+      initLogic = () => initOnboardingLogic('brand');
     } else {
       // Fallback
       viewHtml = renderExploreCreatorsView();

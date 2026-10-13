@@ -18,7 +18,7 @@ export function renderCreatorDashboardView() {
               Welcome, ${user?.full_name || 'Creator'}
             </h1>
             <p class="font-body-md" style="margin: 0; color: var(--color-on-surface-variant);">
-              Manage your invitations, active engagements, and portfolio.
+              Where AI Creativity Meets Brands — Manage your invitations, director treatments, and portfolio.
             </p>
           </div>
           <a href="#explore" class="btn btn-outline" style="padding: 0.65rem 1.25rem;">

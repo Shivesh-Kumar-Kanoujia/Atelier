@@ -9,14 +9,17 @@ export function renderAuthView(mode = 'login') {
       <div class="card" style="width: 100%; max-width: 440px; padding: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
         
         <div style="text-align: center;">
-          <a href="#explore" class="brand-logo" style="justify-content: center; margin-bottom: 1rem; display: flex;">
+          <a href="#explore" class="brand-logo" style="justify-content: center; margin-bottom: 0.5rem; display: flex;">
             <span>ATELIER</span>
           </a>
+          <p class="font-body-sm" style="color: var(--color-secondary); font-weight: 600; margin-bottom: 0.75rem;">
+            Where AI Creativity Meets Brands.
+          </p>
           <h1 class="font-headline-sm" style="color: var(--color-primary); margin-bottom: 0.25rem;">
             ${isLogin ? 'Welcome back' : 'Join Atelier'}
           </h1>
           <p class="font-body-sm" style="color: var(--color-outline);">
-            ${isLogin ? 'Sign in to your account' : 'Create your account to get started'}
+            ${isLogin ? 'Sign in to access your studio pipeline' : 'Create your account to get started'}
           </p>
         </div>
 
@@ -63,8 +66,8 @@ export function renderAuthView(mode = 'login') {
               <label id="role-brand-label" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border: 2px solid var(--color-outline-variant); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;">
                 <input type="radio" name="role" value="brand" id="role-brand" style="display:none;" />
                 <span class="material-symbols-outlined" style="font-size: 28px; color: var(--color-secondary);">business</span>
-                <span class="font-label-lg" style="font-weight: 600;">Brand</span>
-                <span class="font-body-sm" style="color: var(--color-outline); font-size: 11px; text-align: center;">Organization seeking creators</span>
+                <span class="font-label-lg" style="font-weight: 600;">Brand / Org</span>
+                <span class="font-body-sm" style="color: var(--color-outline); font-size: 11px; text-align: center;">Brand or organization seeking talent</span>
               </label>
             </div>
           </div>

@@ -1,4 +1,6 @@
-# Atelier Backend - Supabase Setup Guide
+# Atelier — Where AI Creativity Meets Brands
+### Supabase Database & Services Setup Guide
+*Problem statement proposed by Kampus.VC.*
 
 ## Prerequisites
 - Supabase account (free tier works)

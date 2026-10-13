@@ -121,11 +121,11 @@ export function renderExploreCreatorsView() {
             <div style="max-width: 760px;">
               <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-secondary-gold); display: inline-block;"></span>
-                <span class="font-label-tag" style="color: var(--color-secondary); letter-spacing: 0.15em;">Creator Directory</span>
+                <span class="font-label-tag" style="color: var(--color-secondary); letter-spacing: 0.15em;">Where AI Creativity Meets Brands</span>
               </div>
               <h1 class="font-display-hero" style="margin-bottom: 0.5rem;">Explore AI Creators</h1>
               <p class="font-body-lg" style="margin: 0;">
-                Discover curated AI filmmakers, animators, and generative visual artists for your creative briefs.
+                Discover world-class AI filmmakers, neural animators, and prompt directors ready for commercial briefs.
               </p>
             </div>
 
