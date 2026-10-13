@@ -141,6 +141,20 @@ class PortfolioItemCreate(BaseModel):
     output: Optional[str] = None
 
 
+class PortfolioItemUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=2, max_length=200)
+    subtitle: Optional[str] = Field(None, max_length=400)
+    type: Optional[str] = None
+    category: Optional[str] = None
+    aspect_ratio: Optional[str] = None
+    duration: Optional[str] = None
+    badge: Optional[str] = None
+    client_badge: Optional[str] = None
+    tools: Optional[list[str]] = None
+    workflow: Optional[str] = Field(None, max_length=600)
+    output: Optional[str] = None
+
+
 class PortfolioItemOut(PortfolioItemCreate):
     id: str
     creator_id: str
@@ -256,9 +270,13 @@ class InvitationOut(BaseModel):
     creator_id: str
     brand_id: str
     status: str
-    message: Optional[str]
+    message: Optional[str] = None
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: Optional[datetime] = None
+    campaign_title: Optional[str] = None
+    brand_name: Optional[str] = None
+    creator_name: Optional[str] = None
+    creator_avatar: Optional[str] = None
 
 
 class InvitationRespond(BaseModel):

@@ -1,16 +1,26 @@
-// Screen 4: Company Dashboard — Active Briefs & Shortlisted Talent (MVP)
+// Screen 4: Company Dashboard — Active Briefs, Brand Identity & Shortlisted Talent
 import { store } from '../data/store.js';
 import { showToast } from '../components/Toast.js';
 import { openModal } from '../components/Modal.js';
+import { profileApi, invitationApi, auth } from '../api.js';
 
 export function renderCompanyDashboardView() {
   const briefs = store.getBriefs();
   const shortlisted = store.getShortlistedCreators();
   const allProposals = store.getProposals();
+  const user = auth.getUser();
 
   const activeBriefsCount = briefs.filter(b => b.status !== 'draft').length;
   const proposalsCount = allProposals.length;
   const totalBudget = briefs.reduce((acc, b) => acc + (b.budgetAmount || 5000), 0);
+
+  // Brand profile info (Aura Studios or authenticated brand)
+  let savedLogo = null;
+  try { savedLogo = localStorage.getItem('atelier_brand_logo_v1'); } catch {}
+  const orgName = user?.role === 'brand' ? (user.full_name || 'Aura Studios') : 'Aura Studios';
+  const industry = 'Automotive & Luxury Cinema';
+  const website = 'https://aurastudios.design';
+  const initials = orgName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'AS';
 
   return `
     <div class="company-dashboard-page" style="padding-top: 1.5rem; padding-bottom: 5rem;">
@@ -33,6 +43,50 @@ export function renderCompanyDashboardView() {
               <span class="material-symbols-outlined" style="font-size: 18px;">add_box</span>
               <span>Post New Brief</span>
             </a>
+          </div>
+
+          <!-- Brand Organization Identity & Logo Section -->
+          <div class="card" style="padding: 1.5rem 2rem; background: var(--color-surface-container-low); border: 1.5px solid var(--color-secondary-gold); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <div id="brand-logo-preview-box" style="width: 76px; height: 76px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); border: 2px solid var(--color-secondary-gold); flex-shrink: 0; position: relative;">
+                ${savedLogo ? `
+                  <img id="brand-logo-img" src="${savedLogo}" alt="${orgName}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; background: #fff;" />
+                ` : `
+                  <span id="brand-logo-initials" style="font-size: 26px; font-weight: 700; color: var(--color-secondary-gold); letter-spacing: 0.05em;">${initials}</span>
+                `}
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                  <span class="badge badge-secondary" style="font-size: 10.5px;">Verified Organization</span>
+                  <span class="font-label-tag" style="color: var(--color-outline); font-size: 11px;">${industry}</span>
+                </div>
+                <h2 class="font-headline-sm" style="color: var(--color-primary); margin: 0 0 0.25rem 0; font-size: 20px;">
+                  ${orgName}
+                </h2>
+                <p class="font-body-sm" style="color: var(--color-outline); margin: 0; font-size: 12.5px;">
+                  <a href="${website}" target="_blank" style="color: var(--color-secondary); text-decoration: underline; margin-right: 8px;">${website}</a>
+                  Commercial studio commissioning computational cinema and generative visual campaigns.
+                </p>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <input type="file" id="brand-logo-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;" />
+              <button type="button" id="trigger-brand-logo-btn" class="btn btn-primary" style="font-size: 13px; padding: 0.55rem 1.25rem;">
+                <span class="material-symbols-outlined" style="font-size: 17px;">upload</span>
+                <span>${savedLogo ? 'Replace Logo' : 'Upload Brand Logo'}</span>
+              </button>
+              ${savedLogo ? `
+                <button type="button" id="remove-brand-logo-btn" class="btn btn-outline" style="font-size: 13px; padding: 0.55rem 0.9rem; color: var(--color-error); border-color: rgba(186,26,26,0.3);">
+                  <span class="material-symbols-outlined" style="font-size: 17px;">delete</span>
+                  <span>Remove</span>
+                </button>
+              ` : ''}
+              <div id="brand-logo-status" style="display: none; font-size: 12px; color: var(--color-primary); font-weight: 600; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 16px; animation: spin 1s linear infinite;">autorenew</span>
+                <span>Uploading logo…</span>
+              </div>
+            </div>
           </div>
 
           <!-- 4 Metrics Row -->
@@ -98,20 +152,22 @@ export function renderCompanyDashboardView() {
               </div>
               <div style="margin-top: 1rem;">
                 <div style="display: flex; align-items: baseline; gap: 0.5rem;">
-                  <span class="font-headline-md" style="color: var(--color-primary); font-weight: 700; font-size: 32px;">$${totalBudget.toLocaleString()}</span>
+                  <span class="font-headline-md" style="color: var(--color-on-surface); font-weight: 700; font-size: 32px;">$${totalBudget.toLocaleString()}</span>
+                  <span class="font-label-tag" style="color: var(--color-primary-container); font-weight: 700;">USD</span>
                 </div>
-                <span class="font-body-sm" style="color: var(--color-outline); font-size: 12px; margin-top: 2px; display: block;">Across all active studio briefs</span>
+                <span class="font-body-sm" style="color: var(--color-outline); font-size: 12px; margin-top: 2px; display: block;">Committed & estimated spend</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Main Workspace (Active Briefs vs Shortlisted Talent) -->
+      <!-- Main Layout: Active Briefs Pipeline (8 cols) & Shortlisted Talent (4 cols) -->
       <section class="container-max">
-        <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; align-items: start;">
+        <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; align-items: flex-start;">
+          
           <!-- LEFT SECTION: Active Creative Briefs (8 cols) -->
-          <div style="grid-column: span 12;" id="dash-left-col">
+          <div style="grid-column: span 12; display: flex; flex-direction: column; gap: 2rem;" id="dash-left-col">
             <style>
               @media (min-width: 1024px) {
                 #dash-left-col { grid-column: span 8 !important; }
@@ -120,13 +176,10 @@ export function renderCompanyDashboardView() {
             </style>
 
             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-primary);"></span>
-                    <span class="font-label-tag" style="color: var(--color-outline);">Studio Overview</span>
-                  </div>
-                  <h2 class="font-headline-md" style="color: var(--color-on-surface); margin: 0.25rem 0 0;">Active Creative Briefs</h2>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <h2 class="font-headline-sm" style="color: var(--color-primary); margin: 0;">Active Creative Briefs</h2>
+                  <span class="badge badge-primary" style="font-size: 11px;">Studio Pipeline</span>
                 </div>
                 <span class="font-body-sm" style="color: var(--color-on-surface-variant);">${briefs.length} briefs in pipeline</span>
               </div>
@@ -134,6 +187,24 @@ export function renderCompanyDashboardView() {
               <!-- Briefs List -->
               <div style="display: flex; flex-direction: column; gap: 1.25rem;" id="dashboard-briefs-list">
                 ${briefs.map(b => renderDashboardBriefCard(b)).join('')}
+              </div>
+            </div>
+
+            <!-- Sent Talent Invitations Panel -->
+            <div style="display: flex; flex-direction: column; gap: 1.25rem; border-top: 1px solid var(--color-surface-container); padding-top: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <h2 class="font-headline-sm" style="color: var(--color-primary); margin: 0;">Talent Invitations Sent</h2>
+                  <span class="badge badge-secondary" style="font-size: 11px;">Pitch Outreach</span>
+                </div>
+                <span class="font-body-sm" style="color: var(--color-outline);" id="sent-invitations-count">Checking invitations…</span>
+              </div>
+
+              <div id="sent-invitations-list" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="text-align: center; padding: 2rem; color: var(--color-outline);">
+                  <span class="material-symbols-outlined" style="font-size: 32px; animation: spin 1s linear infinite; display: block; margin-bottom: 0.5rem;">autorenew</span>
+                  Loading sent invitations…
+                </div>
               </div>
             </div>
           </div>
@@ -165,7 +236,7 @@ export function renderCompanyDashboardView() {
                     <img 
                       src="${creator.avatar}" 
                       alt="${creator.name}" 
-                      style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; shrink-0;"
+                      style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0;"
                     />
                     <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -243,7 +314,7 @@ function renderDashboardBriefCard(b) {
           </p>
         </div>
 
-        <div style="text-align: right; shrink-0;">
+        <div style="text-align: right; flex-shrink: 0;">
           <span class="font-label-tag" style="color: var(--color-outline); font-size: 10px; display: block;">Budget</span>
           <span class="font-headline-md" style="color: var(--color-on-surface); font-weight: 700;">$${(b.budgetAmount || 5000).toLocaleString()}</span>
         </div>
@@ -288,11 +359,158 @@ function renderDashboardBriefCard(b) {
 }
 
 export function initCompanyDashboardLogic() {
-  // Real-time synchronization
+  // Real-time synchronization for briefs list
   store.subscribe(() => {
     const list = document.getElementById('dashboard-briefs-list');
     if (list) {
       list.innerHTML = store.getBriefs().map(b => renderDashboardBriefCard(b)).join('');
     }
   });
+
+  // Organization Logo Upload Wiring
+  const triggerLogoBtn = document.getElementById('trigger-brand-logo-btn');
+  const logoFileInput = document.getElementById('brand-logo-file-input');
+  const removeLogoBtn = document.getElementById('remove-brand-logo-btn');
+  const logoStatus = document.getElementById('brand-logo-status');
+  const previewBox = document.getElementById('brand-logo-preview-box');
+
+  if (triggerLogoBtn && logoFileInput) {
+    triggerLogoBtn.onclick = () => logoFileInput.click();
+
+    logoFileInput.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (re) => {
+        if (previewBox) {
+          previewBox.innerHTML = `<img src="${re.target.result}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; background: #fff;" />`;
+        }
+      };
+      reader.readAsDataURL(file);
+
+      triggerLogoBtn.disabled = true;
+      if (logoStatus) logoStatus.style.display = 'flex';
+
+      try {
+        let newUrl = null;
+        if (auth.isLoggedIn()) {
+          const res = await profileApi.uploadBrandLogo(file);
+          newUrl = res.logo_url;
+        } else {
+          newUrl = await new Promise(res => {
+            const r = new FileReader();
+            r.onload = () => res(r.target.result);
+            r.readAsDataURL(file);
+          });
+        }
+
+        try { localStorage.setItem('atelier_brand_logo_v1', newUrl); } catch {}
+        showToast('Brand logo uploaded and updated!', 'check_circle', 4000);
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        console.error("Logo upload failed:", err);
+        showToast(err.message || 'Failed to upload brand logo.', 'error');
+      } finally {
+        triggerLogoBtn.disabled = false;
+        if (logoStatus) logoStatus.style.display = 'none';
+      }
+    };
+  }
+
+  if (removeLogoBtn) {
+    removeLogoBtn.onclick = async () => {
+      try {
+        removeLogoBtn.disabled = true;
+        if (auth.isLoggedIn()) {
+          try { await profileApi.deleteBrandLogo(); } catch {}
+        }
+        try { localStorage.removeItem('atelier_brand_logo_v1'); } catch {}
+        showToast('Brand logo removed.', 'info');
+        setTimeout(() => window.location.reload(), 600);
+      } catch (err) {
+        showToast(err.message || 'Failed to remove logo', 'error');
+        removeLogoBtn.disabled = false;
+      }
+    };
+  }
+
+  // Load Sent Invitations
+  loadSentInvitations();
+}
+
+async function loadSentInvitations() {
+  const container = document.getElementById('sent-invitations-list');
+  const countEl = document.getElementById('sent-invitations-count');
+  if (!container) return;
+
+  try {
+    let invitations = [];
+    if (auth.isLoggedIn()) {
+      invitations = await invitationApi.mine();
+    }
+
+    // Default seeded preview if user hasn't sent invitations yet
+    if (!invitations || invitations.length === 0) {
+      invitations = [
+        {
+          id: "inv-seed-1",
+          campaign_title: "Solaar EV — Kinetic Horizon",
+          creator_name: "Elena Vance",
+          status: "pending",
+          message: "Director Treatment Tender: 4-act coastal vehicle sequence with custom LoRA geometry passes.",
+          created_at: new Date(Date.now() - 14400000).toISOString()
+        },
+        {
+          id: "inv-seed-2",
+          campaign_title: "Solaar EV — Kinetic Horizon",
+          creator_name: "Kaelen Chen",
+          status: "pending",
+          message: "Aerodynamic Visual Pitch & Neural Wind Tunnel simulation.",
+          created_at: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: "inv-seed-3",
+          campaign_title: "Heritage Botanicals — Macro Bioluminescence",
+          creator_name: "Studio Numen",
+          status: "accepted",
+          message: "Atmospheric European landscape focus blending wet reflections and optical flare passes.",
+          created_at: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+    }
+
+    if (countEl) countEl.textContent = `${invitations.length} active outreach pitches`;
+
+    container.innerHTML = invitations.map(inv => {
+      const isAccepted = inv.status === 'accepted';
+      const isPending = inv.status === 'pending';
+      const badge = isPending 
+        ? '<span class="badge badge-secondary" style="font-size: 10px;">Awaiting Creator</span>'
+        : isAccepted
+        ? '<span class="badge badge-primary" style="font-size: 10px;">Accepted • In Production</span>'
+        : '<span class="badge badge-neutral" style="font-size: 10px;">Declined</span>';
+
+      return `
+        <div class="card card-lift" style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              ${badge}
+              <strong style="color: var(--color-primary); font-size: 14px;">${inv.creator_name || 'Shortlisted Creator'}</strong>
+            </div>
+            <p class="font-body-sm" style="color: var(--color-on-surface); margin: 0 0 0.25rem 0; font-weight: 600;">
+              Campaign: ${inv.campaign_title || 'Commercial Project'}
+            </p>
+            ${inv.message ? `<p class="font-body-sm" style="color: var(--color-outline); margin: 0; font-size: 12px; max-width: 600px;">${inv.message}</p>` : ''}
+          </div>
+          <span class="font-label-tag" style="color: var(--color-outline); font-size: 10px;">
+            ${inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'Active'}
+          </span>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.warn("Could not load sent invitations:", err);
+    if (countEl) countEl.textContent = 'Active outreach';
+  }
 }

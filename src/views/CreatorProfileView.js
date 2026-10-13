@@ -456,7 +456,7 @@ export function initCreatorProfileLogic(creatorId = 'elena-vance') {
             <textarea class="textarea" rows="4" placeholder="Briefly describe your deliverables, timeline, and aesthetic requirements...">Hello Elena, we loved your work on Aura Borealis and would like to discuss commissioning a 60s teaser for our upcoming product launch.</textarea>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
-            <button type="button" class="btn btn-outline" onclick="document.getElementById('active-modal-backdrop')?.remove()">Cancel</button>
+            <button type="button" class="btn btn-outline" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove();">Cancel</button>
             <button type="submit" class="btn btn-primary">Send Direct Inquiry</button>
           </div>
         </form>
@@ -467,7 +467,7 @@ export function initCreatorProfileLogic(creatorId = 'elena-vance') {
     if (form) {
       form.onsubmit = (e) => {
         e.preventDefault();
-        document.getElementById('active-modal-backdrop')?.remove();
+        if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove();
         showToast(`Inquiry sent directly to ${creator.name}! Expected response within 24h.`, 'mark_email_read');
       };
     }
@@ -539,8 +539,8 @@ export function initCreatorProfileLogic(creatorId = 'elena-vance') {
               <div style="color: var(--color-on-surface-variant);">${workflow}</div>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-              <button class="btn btn-outline" onclick="document.getElementById('active-modal-backdrop')?.remove()">Close Preview</button>
-              <button class="btn btn-primary" onclick="document.getElementById('active-modal-backdrop')?.remove(); document.getElementById('profile-contact-btn')?.click();">Commission Project</button>
+              <button class="btn btn-outline" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove();">Close Preview</button>
+              <button class="btn btn-primary" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove(); document.getElementById('profile-contact-btn')?.click();">Commission Project</button>
             </div>
           </div>
         `
@@ -576,7 +576,7 @@ export function initCreatorProfileLogic(creatorId = 'elena-vance') {
               </div>
             </div>
             <div style="display: flex; justify-content: flex-end;">
-              <button class="btn btn-primary" onclick="document.getElementById('active-modal-backdrop')?.remove()">Got It</button>
+              <button class="btn btn-primary" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove();">Got It</button>
             </div>
           </div>
         `

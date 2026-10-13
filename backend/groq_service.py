@@ -33,10 +33,35 @@ Rules:
 
 
 def _parse_brief_json(text: str) -> dict:
-    """Extract and parse JSON from model output."""
-    # Strip markdown code fences if present
-    cleaned = re.sub(r'```(?:json)?\s*', '', text).strip().rstrip('`').strip()
-    return json.loads(cleaned)
+    """Extract and parse JSON from model output with resilient fallback."""
+    cleaned = text.strip()
+    # 1. Direct parse attempt
+    try:
+        return json.loads(cleaned)
+    except Exception:
+        pass
+
+    # 2. Extract from markdown code fence
+    fence_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if fence_match:
+        try:
+            return json.loads(fence_match.group(1).strip())
+        except Exception:
+            pass
+
+    # 3. Find outermost curly braces
+    first_brace = text.find('{')
+    last_brace = text.rfind('}')
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        candidate = text[first_brace:last_brace + 1].strip()
+        try:
+            return json.loads(candidate)
+        except Exception:
+            pass
+
+    # 4. Strip leftover fence tokens and retry
+    stripped = re.sub(r'```(?:json)?\s*', '', text).strip().rstrip('`').strip()
+    return json.loads(stripped)
 
 
 async def generate_brief_draft(req: BriefGenerateRequest) -> AIBriefDraft:

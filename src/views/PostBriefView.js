@@ -650,14 +650,20 @@ export function initPostBriefLogic() {
     aiBtn.onclick = async () => {
       const idea = aiIdeaInput?.value.trim();
       const brand_name = aiBrandInput?.value.trim();
-      if (!idea) {
-        showToast('Please enter a brief concept or idea', 'info');
+      if (!idea || idea.length < 10) {
+        showToast('Please enter a concept description of at least 10 characters', 'info');
         aiIdeaInput?.focus();
         return;
       }
 
       aiBtn.disabled = true;
-      if (aiStatus) aiStatus.style.display = 'flex';
+      if (aiStatus) {
+        aiStatus.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size: 16px; animation: spin 1s linear infinite;">autorenew</span>
+          <span>Generating structured brief with Groq AI...</span>
+        `;
+        aiStatus.style.display = 'flex';
+      }
 
       try {
         const draftRes = await aiApi.generateBrief({ idea, brand_name });
@@ -684,16 +690,19 @@ export function initPostBriefLogic() {
 
           // Check visual style cards matching draftRes.styles
           if (draftRes.styles?.length) {
-            document.querySelectorAll('.visual-style-card').forEach(card => {
-              const styleName = card.dataset.style;
-              const match = draftRes.styles.some(s => s.toLowerCase().includes(styleName.toLowerCase()) || styleName.toLowerCase().includes(s.toLowerCase()));
-              const input = card.querySelector('input[type="checkbox"]');
-              const checkmark = card.querySelector('.material-symbols-outlined');
+            document.querySelectorAll('.style-choice-item').forEach(label => {
+              const input = label.querySelector('input[name="style_choice"]');
+              const cardDiv = label.querySelector('.card');
+              const checkmark = label.querySelector('.checkmark-icon');
+              const styleVal = input ? input.value : '';
+              const match = draftRes.styles.some(s => s.toLowerCase().includes(styleVal.toLowerCase()) || styleVal.toLowerCase().includes(s.toLowerCase()));
               if (input && match) {
                 input.checked = true;
-                card.style.borderColor = 'var(--color-primary)';
-                card.style.background = 'rgba(10, 53, 37, 0.04)';
-                if (checkmark) checkmark.style.display = 'block';
+                if (cardDiv) {
+                  cardDiv.style.border = '2px solid var(--color-secondary-gold)';
+                  cardDiv.style.background = 'rgba(255, 221, 183, 0.3)';
+                }
+                if (checkmark) checkmark.style.display = 'inline-block';
               }
             });
           }
@@ -701,13 +710,16 @@ export function initPostBriefLogic() {
           // Check aspect ratios matching draftRes.aspect_ratios
           if (draftRes.aspect_ratios?.length) {
             document.querySelectorAll('.ar-choice-item').forEach(item => {
-              const cb = item.querySelector('input[type="checkbox"]');
+              const cb = item.querySelector('input[name="ar_choice"]');
               const badge = item.querySelector('.badge');
               const val = cb?.value || '';
               const match = draftRes.aspect_ratios.some(ar => ar.toLowerCase().includes(val.toLowerCase()) || val.toLowerCase().includes(ar.toLowerCase()));
               if (cb && match) {
                 cb.checked = true;
-                if (badge) badge.className = 'badge badge-primary';
+                if (badge) {
+                  badge.classList.remove('badge-neutral');
+                  badge.classList.add('badge-primary');
+                }
               }
             });
           }
@@ -721,16 +733,51 @@ export function initPostBriefLogic() {
             });
           }
 
+          // Budget tier
+          const budgetSelect = document.getElementById('brief-budget-select');
+          if (budgetSelect && draftRes.budget_tier) {
+            Array.from(budgetSelect.options).forEach(opt => {
+              if (opt.text.toLowerCase().includes(draftRes.budget_tier.toLowerCase()) || draftRes.budget_tier.toLowerCase().includes(opt.text.toLowerCase())) {
+                budgetSelect.value = opt.text;
+              }
+            });
+          }
+
+          // Deadline
+          const deadlineInput = document.getElementById('brief-deadline-input');
+          if (deadlineInput && draftRes.deadline) {
+            deadlineInput.value = draftRes.deadline;
+          }
+
+          // Commercial rights
+          if (draftRes.commercial_rights) {
+            document.querySelectorAll('input[name="commercial_choice"]').forEach(r => {
+              if (r.value.toLowerCase().includes(draftRes.commercial_rights.toLowerCase()) || draftRes.commercial_rights.toLowerCase().includes(r.value.toLowerCase())) {
+                r.checked = true;
+              }
+            });
+          }
+
           updatePreviewAndDraft();
-          showToast('Creative brief drafted with Groq AI! Review parameters below.', 'auto_awesome');
+          showToast('Creative brief drafted with Groq AI! Review and edit parameters below.', 'auto_awesome');
         }
       } catch (err) {
-        console.warn("AI generation error, using fallback draft:", err);
-        if (titleInput) titleInput.value = (brand_name ? `${brand_name} — ` : '') + (idea.slice(0, 40) + ' Campaign');
-        if (clientInput && brand_name) clientInput.value = brand_name;
-        if (descInput) descInput.value = idea;
-        updatePreviewAndDraft();
-        showToast('Brief drafted! Review and customize parameters below.', 'auto_awesome');
+        console.error("AI brief generation failed:", err);
+        let errorMsg = 'Failed to generate brief with AI. Please try again.';
+        if (err.message) {
+          if (err.message.includes('429') || err.message.toLowerCase().includes('rate limit')) {
+            errorMsg = 'AI generation rate limit reached. Please wait a moment and try again.';
+          } else if (err.message.includes('401') || err.message.toLowerCase().includes('session expired')) {
+            errorMsg = 'Authentication required. Please sign in to draft with AI.';
+          } else if (err.message.includes('503') || err.message.toLowerCase().includes('not configured')) {
+            errorMsg = 'AI brief generation service is currently unavailable.';
+          } else if (err.message.includes('504') || err.message.toLowerCase().includes('timeout')) {
+            errorMsg = 'AI request timed out. Please try with a more concise description.';
+          } else {
+            errorMsg = `AI Assistant: ${err.message}`;
+          }
+        }
+        showToast(errorMsg, 'error', 5000);
       } finally {
         aiBtn.disabled = false;
         if (aiStatus) aiStatus.style.display = 'none';
@@ -793,10 +840,10 @@ export function initPostBriefLogic() {
               </p>
             </div>
             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem;">
-              <button class="btn btn-outline" onclick="window.location.hash = '#dashboard'; document.getElementById('active-modal-backdrop')?.remove();">
+              <button class="btn btn-outline" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove(); window.location.hash = '#dashboard';">
                 View Studio Dashboard
               </button>
-              <button class="btn btn-primary" onclick="window.location.hash = '#brief/${createdBrief.id}'; document.getElementById('active-modal-backdrop')?.remove();">
+              <button class="btn btn-primary" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove(); window.location.hash = '#brief/${createdBrief.id}';">
                 Inspect Brief & Matches
               </button>
             </div>

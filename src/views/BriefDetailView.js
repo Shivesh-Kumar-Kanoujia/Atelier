@@ -530,9 +530,9 @@ export function initBriefDetailLogic(briefId = 'brief-solaar-ev') {
               </div>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
-              <button class="btn btn-outline" onclick="document.getElementById('active-modal-backdrop')?.remove()">Close</button>
-              <button class="btn btn-primary" onclick="document.getElementById('active-modal-backdrop')?.remove(); document.querySelector('.accept-proposal-btn[data-prop-id=\\'${prop.id}\\']')?.click();">
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem; padding-bottom: 0.75rem; position: sticky; bottom: -1rem; background: var(--color-surface-container-lowest); padding-top: 0.75rem; border-top: 1px solid var(--color-surface-container);">
+              <button type="button" class="btn btn-outline" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove();">Close</button>
+              <button type="button" class="btn btn-primary" onclick="if (window.closeModal) window.closeModal(); else document.getElementById('active-modal-backdrop')?.remove(); document.querySelector('.accept-proposal-btn[data-prop-id=\\'${prop.id}\\']')?.click();">
                 Accept This Pitch
               </button>
             </div>

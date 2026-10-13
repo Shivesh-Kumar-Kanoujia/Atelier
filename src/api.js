@@ -116,15 +116,27 @@ export const profileApi = {
     form.append('file', file);
     return apiFetch('/profiles/creator/me/avatar', { method: 'POST', body: form });
   },
+  deleteAvatar() {
+    return apiFetch('/profiles/creator/me/avatar', { method: 'DELETE' });
+  },
   uploadCover(file) {
     const form = new FormData();
     form.append('file', file);
     return apiFetch('/profiles/creator/me/cover', { method: 'POST', body: form });
   },
+  uploadBrandLogo(file) {
+    const form = new FormData();
+    form.append('file', file);
+    return apiFetch('/profiles/brand/me/logo', { method: 'POST', body: form });
+  },
+  deleteBrandLogo() {
+    return apiFetch('/profiles/brand/me/logo', { method: 'DELETE' });
+  },
 };
 
 // ─── Portfolio ────────────────────────────────────────────────────────────────
 export const portfolioApi = {
+  mine: () => apiFetch('/portfolio/mine'),
   list: (creatorId) => apiFetch(`/portfolio/${creatorId}`),
   create: (data) => apiFetch('/portfolio', { method: 'POST', body: data }),
   update: (id, data) => apiFetch(`/portfolio/${id}`, { method: 'PATCH', body: data }),

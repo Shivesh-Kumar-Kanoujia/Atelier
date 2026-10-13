@@ -4,6 +4,7 @@ import { INITIAL_BRIEFS } from './briefs.js';
 import { INITIAL_PROPOSALS } from './proposals.js';
 
 const STORAGE_KEYS = {
+  CREATORS: 'atelier_creators_v1',
   BRIEFS: 'atelier_briefs_v1',
   PROPOSALS: 'atelier_proposals_v1',
   BOOKMARKS: 'atelier_bookmarks_v1',
@@ -12,7 +13,8 @@ const STORAGE_KEYS = {
 
 class Store {
   constructor() {
-    this.creators = [...INITIAL_CREATORS];
+    const loadedCreators = this.load(STORAGE_KEYS.CREATORS, null);
+    this.creators = (loadedCreators && loadedCreators.length >= INITIAL_CREATORS.length) ? loadedCreators : [...INITIAL_CREATORS];
     this.briefs = this.load(STORAGE_KEYS.BRIEFS, INITIAL_BRIEFS);
     this.proposals = this.load(STORAGE_KEYS.PROPOSALS, INITIAL_PROPOSALS);
     this.bookmarks = new Set(this.load(STORAGE_KEYS.BOOKMARKS, ['elena-vance', 'kaelen-chen', 'studio-numen']));
@@ -59,7 +61,36 @@ class Store {
   }
 
   getCreator(id) {
-    return this.creators.find(c => c.id === id) || null;
+    return this.creators.find(c => c.id === id || c.handle === id || c.handle === `@${id}`) || null;
+  }
+
+  updateCreator(id, updates) {
+    const idx = this.creators.findIndex(c => c.id === id || c.handle === id || c.handle === `@${id}`);
+    if (idx !== -1) {
+      this.creators[idx] = { ...this.creators[idx], ...updates };
+      this.save(STORAGE_KEYS.CREATORS, this.creators);
+      this.notify();
+    }
+  }
+
+  addPortfolioItem(creatorId, item) {
+    const creator = this.getCreator(creatorId);
+    if (creator) {
+      if (!creator.portfolio) creator.portfolio = [];
+      creator.portfolio = creator.portfolio.filter(p => p.id !== item.id);
+      creator.portfolio.unshift(item);
+      this.save(STORAGE_KEYS.CREATORS, this.creators);
+      this.notify();
+    }
+  }
+
+  removePortfolioItem(creatorId, itemId) {
+    const creator = this.getCreator(creatorId);
+    if (creator && creator.portfolio) {
+      creator.portfolio = creator.portfolio.filter(p => p.id !== itemId);
+      this.save(STORAGE_KEYS.CREATORS, this.creators);
+      this.notify();
+    }
   }
 
   isBookmarked(id) {

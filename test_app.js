@@ -138,5 +138,24 @@ assert(accepted, 'Proposal acceptance executes cleanly');
 const updatedSolaar = store.getBrief('brief-solaar-ev');
 assert(updatedSolaar.status === 'in_production', 'Brief status updated to in_production upon accepting proposal');
 
+// 8. Creator Profile Media & Portfolio Item Store Management
+const initialElenaAvatar = store.getCreator('elena-vance').avatar;
+store.updateCreator('elena-vance', { avatar: 'https://test.atelier/avatar-custom.jpg' });
+assert(store.getCreator('elena-vance').avatar === 'https://test.atelier/avatar-custom.jpg', 'Creator avatar updates reactively in store');
+// restore initial avatar
+store.updateCreator('elena-vance', { avatar: initialElenaAvatar });
+
+const testItem = {
+  id: 'work-test-' + Date.now(),
+  title: 'Cybernetic Flora Spot',
+  category: 'AI Commercial',
+  image: 'https://test.atelier/cybernetic-flora.jpg'
+};
+store.addPortfolioItem('elena-vance', testItem);
+assert(store.getCreator('elena-vance').portfolio.some(p => p.id === testItem.id), 'New portfolio item found in creator portfolio');
+
+store.removePortfolioItem('elena-vance', testItem.id);
+assert(!store.getCreator('elena-vance').portfolio.some(p => p.id === testItem.id), 'Removed portfolio item no longer in creator portfolio');
+
 console.log(`\nResults: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);

@@ -92,7 +92,34 @@ async def get_my_invitations(user: dict = Depends(get_current_user)):
         if not brand_row or not brand_row.data:
             return []
         rows = sb.table("invitations").select("*").eq("brand_id", brand_row.data["id"]).order("created_at", desc=True).execute()
-    return [InvitationOut(**r) for r in rows.data]
+
+    items = []
+    for r in (rows.data or []):
+        item = dict(r)
+        if item.get("campaign_id"):
+            try:
+                camp = sb.table("campaigns").select("title").eq("id", item["campaign_id"]).maybe_single().execute()
+                if camp and camp.data:
+                    item["campaign_title"] = camp.data.get("title")
+            except Exception:
+                pass
+        if item.get("brand_id"):
+            try:
+                brand = sb.table("brand_profiles").select("org_name").eq("id", item["brand_id"]).maybe_single().execute()
+                if brand and brand.data:
+                    item["brand_name"] = brand.data.get("org_name")
+            except Exception:
+                pass
+        if item.get("creator_id"):
+            try:
+                creator = sb.table("creator_profiles").select("display_name, avatar_url").eq("id", item["creator_id"]).maybe_single().execute()
+                if creator and creator.data:
+                    item["creator_name"] = creator.data.get("display_name")
+                    item["creator_avatar"] = creator.data.get("avatar_url")
+            except Exception:
+                pass
+        items.append(InvitationOut(**item))
+    return items
 
 
 @invitation_router.patch("/{invitation_id}/respond", response_model=InvitationOut)
