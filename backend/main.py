@@ -50,3 +50,9 @@ def root():
 @app.get("/health", tags=["health"])
 def health():
     return {"status": "healthy"}
+
+
+@app.head("/health", tags=["health"], include_in_schema=False)
+def health_head():
+    from fastapi import Response
+    return Response(status_code=200)
