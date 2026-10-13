@@ -1,85 +1,94 @@
-AI Content Creator Marketplace
+# Atelier — AI Content Creator Marketplace
 
-About the Project:-
+An editorial, gallery-grade computational cinema and generative visual art marketplace connecting world-class AI filmmakers, prompt directors, and creators with innovative commercial brands.
 
-The AI Content Creator Marketplace is a platform designed to connect AI content creators with companies that need AI-generated content for their projects.
+Built directly from the **Atelier Curated Stitch design system**, preserving the archival forest-green aesthetic (`#0A3525`), warm ivory background (`#F6FBF5`), muted gold provenance signals (`#D6A66B`), editorial typography (`Playfair Display` & `Plus Jakarta Sans`), and portfolio-first architecture.
 
-Many creators make good work using AI tools, but it can be difficult for companies to find people with the right skills and experience. At the same time, creators may struggle to showcase their work and explain how they created it.
+---
 
-This platform aims to make that process easier by bringing creators, their portfolios, and company project requirements together in one place.
+## Core MVP Screens
 
-Problem Statement:-
+1. **Explore Creators (`#explore`)**
+   - Live roster discovery with multi-faceted filtering:
+     - **Discipline**: AI Filmmaker, 3D & Neural Animator, Concept Artist, Visual Effects
+     - **AI Tools & Models**: Runway Gen-3, Midjourney v6, Flux.1 Pro, ComfyUI, Kling, Luma Dream Machine
+     - **Visual Styles**: Cinematic 35mm, Editorial Fashion, Sci-Fi Worldbuilding, Minimalist Product, Retro & Analog
+     - **Availability**: Available Now vs. Booking Next Month / 2 Weeks
+   - Real-time search across names, disciplines, prompt focus, tools, and bios.
+   - Sort by Recommended, Rate: Low to High, Rate: High to Low, Top Rated.
+   - Interactive shortlist bookmarking with reactive feedback toasts.
 
-Finding the right AI content creator can take time. Companies need to compare different creators, understand their skills, and check whether their work matches a project's requirements.
+2. **Creator Profile — Elena Vance (`#profile/elena-vance`)**
+   - Full creator dossier with verified emblem, location, response time (<24h), and availability status.
+   - Real stats: completed projects (14), client rating (4.98/5 across 18 reviews), response turnaround.
+   - Core Skills & Technical Pipeline matrix (Runway Gen-3, Midjourney v6, ComfyUI, Flux.1, Topaz Video AI, TouchDesigner).
+   - Filterable portfolio gallery (Commercial Spots, Spec Work, Short Films) with playable simulated 4K reels and step-by-step prompt-to-render workflow breakdowns.
+   - Collaborator testimonial from Creative Director Julien Mercier.
+   - Commission packages (Starter Teaser, Full Campaign Spot, Bespoke Narrative Production) with direct inquiry modal.
 
-Creators also need a better way to present their portfolios, AI tools, workflows, and previous projects.
+3. **Post a Creative Brief (`#post-brief`)**
+   - Structured 3-step brief wizard:
+     - **Step 1: Scope & Purpose**: Project title, brand name, campaign objective, content type, narrative guidelines.
+     - **Step 2: Visual Style & References**: Visual cards selector (Cinematic 35mm, Futuristic Photorealism, Surreal Editorial, etc.), live reference links manager, target aspect ratio chips.
+     - **Step 3: Deliverables & Terms**: 4K video master, social cutdowns, clean stills, generation logs, deadline picker, realistic budget tiers ($1K-$3K, $3K-$6K, $6K-$12K, $12K+), commercial rights options.
+   - Sticky live preview updating reactively in real time.
+   - Explainable creator match estimator calculating live matches based on user's current selections.
+   - Local draft autosave & instant publishing to the studio pipeline.
 
-The platform aims to solve these problems through a simple marketplace where companies can discover creators and creators can showcase their work.
+4. **Company Dashboard (`#dashboard`)**
+   - Real-time studio metrics: Active Briefs, Received Proposals, Shortlisted Talent, Allocated Budget.
+   - Studio pipeline of active briefs (`Solaar EV`, `Heritage Botanicals`, `Synthetica Sound`, and user-published briefs) with production status badges and assigned creator badges.
+   - Shortlisted Talent sidebar reflecting real-time bookmarks from explorer and profile screens.
 
-Key Features:-
+5. **Brief Detail & Explainable Recommendations (`#brief/brief-solaar-ev`)**
+   - Detailed brief specification with high-resolution reference stills gallery, deliverables matrix, and sound design notes.
+   - **Explainable AI Matching Algorithm**:
+     - Calculates match percentages based on established criteria:
+       - Skills match: 35%
+       - Content type match: 25%
+       - AI tools and models match: 20%
+       - Output format match: 10%
+       - Availability match: 10%
+     - Transparent breakdown tags detailing *why* each creator matches (Matching Tools, Matching Style, Format Fit, Immediate Availability).
+     - Recent relevant work reel previews and "Invite to Pitch" actions.
+   - **Tender Administration**:
+     - Filter between all proposals and shortlisted proposals.
+     - Full director treatments (Elena Vance, Kaelen Chen, Studio Numen) with turnaround schedules, quoted fees, and mood reels.
+     - "Review Treatment" interactive modal and "Accept Proposal" workflow assigning the creator and moving the brief into active production.
 
-1. Creator Profiles and AI Portfolios:
+---
 
-Creators can build profiles that highlight their skills, experience, and AI-generated work.
+## Architecture & Data Flow
 
-Each profile can include:
-- Creator name and introduction
-- Skills and areas of expertise
-- AI tools and models used
-- Portfolio projects and samples
-- Content categories
-- Production workflow
-- Availability for new projects
+- **Frontend**: Lightweight Vite application with clean Vanilla CSS design tokens.
+- **State Management**: Central reactive store (`src/data/store.js`) with event subscription and `localStorage` persistence.
+- **Routing**: Hash-based client router (`src/router.js`) supporting direct deep links (`#explore`, `#profile/elena-vance`, `#post-brief`, `#dashboard`, `#brief/brief-solaar-ev`).
+- **No Dead Links**: Every button, modal, form submit, bookmark toggle, filter, and tab is fully wired with real state updates and feedback toasts.
 
-2. Project Brief Creation:
+---
 
-Companies can create project briefs explaining what they need from a creator.
+## Getting Started
 
-A brief may include:
-- Project title and description
-- Type of content required
-- Required skills and tools
-- Expected deliverables and formats
-- Project timeline
-- Budget or price range
-- Preferred creator experience
+### Prerequisites
+- Node.js (v18+)
+- npm (v9+)
 
-This helps creators understand the requirements before expressing interest in a project.
+### Installation & Development
+```bash
+# Navigate to repository
+cd hacXLerate-
 
-3. Creator Discovery and Filtering:
+# Install dependencies
+npm install
 
-Companies can explore creator profiles and narrow down the results using filters such as:
-- Skills and expertise
-- Content type
-- AI tools and models
-- Portfolio categories
-- Availability
-- Relevant project experience
+# Run local development server
+npm run dev
 
-These filters make it easier to find creators who fit a particular project.
+# Run automated test suite
+node test_app.js
 
-4. AI-Assisted Brief Builder:
+# Build production bundle
+npm run build
+```
 
-An AI-assisted brief builder is a planned feature that can help companies turn a basic project idea into a more structured brief.
-
-It could suggest missing details, clarify deliverables, and organize requirements so creators can understand the project more easily.
-
-5. Creator Matching:
-
-The platform can use project requirements and creator profile information to identify potentially suitable matches.
-
-A proposed matching system could consider the following factors:
-
-- Skills match: 35%
-- Content type match: 25%
-- AI tools and models match: 20%
-- Output format match: 10%
-- Availability match: 10%
-
-The matching score is intended to help companies compare creators. It should also explain why a creator matches a brief rather than displaying only a score.
-
-6. Verification Signals:
-
-The platform can display transparent verification signals to help companies evaluate creator profiles.
-
-These signals could include portfolio completeness, linked work samples, demonstrated workflows, and confirmed profile information. Such indicators should not be treated as proof that all
+Open `http://localhost:3000/` in your browser.
