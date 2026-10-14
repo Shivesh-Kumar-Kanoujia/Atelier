@@ -226,9 +226,8 @@ hacXLerate-/
 ### Frontend Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/Shivesh-Kumar-Kanoujia/Atelier.git
-cd Atelier
+# Navigate to repository
+cd hacXLerate-
 
 # Install dependencies
 npm install
