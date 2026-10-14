@@ -406,6 +406,11 @@ export function initCompanyDashboardLogic() {
         }
 
         try { localStorage.setItem('atelier_brand_logo_v1', newUrl); } catch {}
+        const currentUser = auth.getUser();
+        if (currentUser) {
+          auth.setUser({ ...currentUser, logo_url: newUrl, avatar_url: newUrl });
+        }
+        store.notify();
         showToast('Brand logo uploaded and updated!', 'check_circle', 4000);
         setTimeout(() => window.location.reload(), 800);
       } catch (err) {
@@ -426,6 +431,14 @@ export function initCompanyDashboardLogic() {
           try { await profileApi.deleteBrandLogo(); } catch {}
         }
         try { localStorage.removeItem('atelier_brand_logo_v1'); } catch {}
+        const currentUser = auth.getUser();
+        if (currentUser) {
+          const u = { ...currentUser };
+          delete u.logo_url;
+          delete u.avatar_url;
+          auth.setUser(u);
+        }
+        store.notify();
         showToast('Brand logo removed.', 'info');
         setTimeout(() => window.location.reload(), 600);
       } catch (err) {

@@ -839,6 +839,12 @@ async function loadCreatorProfileEditor() {
           }
 
           store.updateCreator(creatorId, { avatar: newUrl, avatar_url: newUrl });
+          try { localStorage.setItem('atelier_creator_avatar_v1', newUrl); } catch {}
+          const currentUser = auth.getUser();
+          if (currentUser) {
+            auth.setUser({ ...currentUser, avatar: newUrl, avatar_url: newUrl });
+          }
+          store.notify();
           showToast('Profile picture uploaded and updated across Atelier!', 'check_circle', 4000);
           await loadCreatorProfileEditor();
         } catch (err) {
@@ -860,6 +866,15 @@ async function loadCreatorProfileEditor() {
             await profileApi.deleteAvatar();
           }
           store.updateCreator(creatorId, { avatar: null, avatar_url: null });
+          try { localStorage.removeItem('atelier_creator_avatar_v1'); } catch {}
+          const currentUser = auth.getUser();
+          if (currentUser) {
+            const u = { ...currentUser };
+            delete u.avatar;
+            delete u.avatar_url;
+            auth.setUser(u);
+          }
+          store.notify();
           showToast('Profile picture removed.', 'info');
           await loadCreatorProfileEditor();
         } catch (err) {

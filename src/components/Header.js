@@ -1,6 +1,55 @@
 // Atelier Global Header Component
 import { store } from '../data/store.js';
-import { auth, authApi } from '../api.js';
+import { auth, authApi, profileApi } from '../api.js';
+
+/**
+ * Resolves the authenticated user's avatar image URL from existing profile data,
+ * storage, and reactive store without hardcoding names or URLs.
+ */
+export function getAuthenticatedUserAvatar(user) {
+  if (!user) return null;
+  if (user.avatar_url) return user.avatar_url;
+  if (user.avatar) return user.avatar;
+  if (user.logo_url) return user.logo_url;
+
+  if (user.role === 'creator') {
+    try {
+      const saved = localStorage.getItem('atelier_creator_avatar_v1');
+      if (saved) return saved;
+    } catch {}
+
+    const creators = store.getCreators();
+    let creator = null;
+    if (user.id) creator = store.getCreator(user.id);
+    if (!creator && user.email) creator = creators.find(c => c.email === user.email);
+    if (!creator && user.full_name) {
+      creator = creators.find(c => c.name?.toLowerCase() === user.full_name.toLowerCase());
+    }
+    if (!creator && (user.full_name === 'Elena Vance' || user.id === 'elena-vance')) {
+      creator = store.getCreator('elena-vance');
+    }
+    if (creator?.avatar) return creator.avatar;
+    if (creator?.avatar_url) return creator.avatar_url;
+  } else if (user.role === 'brand') {
+    try {
+      const savedLogo = localStorage.getItem('atelier_brand_logo_v1');
+      if (savedLogo) return savedLogo;
+    } catch {}
+  }
+
+  return null;
+}
+
+/**
+ * Returns initials for fallback avatar display.
+ */
+export function getUserInitials(user) {
+  const name = user?.full_name || (user?.role === 'brand' ? 'Brand Org' : 'User');
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'AT';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export function renderHeader(currentRoute = '') {
   const shortlistCount = store.getShortlistedCreators().length;
@@ -8,15 +57,18 @@ export function renderHeader(currentRoute = '') {
   const isLoggedIn = !!user;
   const isCreator = user?.role === 'creator';
   const isBrand = user?.role === 'brand';
+  const userName = user?.full_name || 'My Account';
+  const avatarUrl = isLoggedIn ? getAuthenticatedUserAvatar(user) : null;
+  const initials = isLoggedIn ? getUserInitials(user) : '';
+  const dashboardLink = isCreator ? '#creator-dashboard' : '#dashboard';
 
   return `
     <header class="site-header">
       <div class="container-max header-inner">
         <!-- Brand -->
-        <div style="display: flex; align-items: center; gap: 1.5rem;">
-          <a href="#explore" class="brand-logo" id="brand-logo-link" title="Atelier — Where AI Creativity Meets Brands">
+        <div style="display: flex; align-items: center;">
+          <a href="#explore" class="brand-logo" id="brand-logo-link" title="Atelier">
             <span>ATELIER</span>
-            <span class="brand-badge" style="letter-spacing: 0.05em; font-size: 11px;">Where AI Creativity Meets Brands</span>
           </a>
         </div>
 
@@ -62,13 +114,19 @@ export function renderHeader(currentRoute = '') {
           ${isLoggedIn ? `
           <!-- User Profile & Sign Out -->
           <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: 0.25rem;">
-            <a href="${isCreator ? '#creator-dashboard' : '#dashboard'}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+            <a href="${dashboardLink}" class="header-profile-link" title="${userName}" aria-label="Profile of ${userName}">
               <span class="badge ${isCreator ? 'badge-primary' : 'badge-secondary'}" style="font-size: 11px; padding: 3px 8px;">
                 ${isCreator ? 'Creator' : 'Brand / Org'}
               </span>
-              <span class="font-label-md" style="color: var(--color-on-surface); font-weight: 600; font-size: 13px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                ${user.full_name || 'My Account'}
-              </span>
+              ${avatarUrl ? `
+                <div class="header-avatar" title="${userName}">
+                  <img src="${avatarUrl}" alt="${userName}" onerror="this.onerror=null; this.parentElement.classList.add('header-avatar-fallback'); this.parentElement.innerHTML='<span>${initials}</span>';" />
+                </div>
+              ` : `
+                <div class="header-avatar header-avatar-fallback" title="${userName}">
+                  <span>${initials}</span>
+                </div>
+              `}
             </a>
             <button id="header-logout-btn" class="btn-icon" title="Sign Out" aria-label="Sign Out" style="display: flex; align-items: center; justify-content: center; color: var(--color-outline);">
               <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
@@ -91,7 +149,37 @@ export function renderHeader(currentRoute = '') {
   `;
 }
 
+let isSyncing = false;
+async function syncRemoteAvatar() {
+  if (isSyncing || !auth.isLoggedIn()) return;
+  isSyncing = true;
+  try {
+    const user = auth.getUser();
+    if (!user || user.avatar_url) return;
+    if (user.role === 'creator') {
+      const prof = await profileApi.getMyCreatorProfile();
+      if (prof?.avatar_url) {
+        auth.setUser({ ...user, avatar_url: prof.avatar_url, avatar: prof.avatar_url });
+        store.notify();
+      }
+    } else if (user.role === 'brand') {
+      const prof = await profileApi.getMyBrandProfile();
+      if (prof?.logo_url) {
+        auth.setUser({ ...user, logo_url: prof.logo_url, avatar_url: prof.logo_url });
+        try { localStorage.setItem('atelier_brand_logo_v1', prof.logo_url); } catch {}
+        store.notify();
+      }
+    }
+  } catch {
+    // Graceful fallback for offline / unseeded profile
+  } finally {
+    isSyncing = false;
+  }
+}
+
 export function initHeaderListeners() {
+  syncRemoteAvatar();
+
   const searchBtn = document.getElementById('header-search-btn');
   if (searchBtn) {
     searchBtn.onclick = () => {

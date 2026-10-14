@@ -8,8 +8,9 @@ import { renderBriefDetailView } from './src/views/BriefDetailView.js';
 import { renderAuthView } from './src/views/AuthView.js';
 import { renderCreatorDashboardView } from './src/views/CreatorDashboardView.js';
 import { renderOnboardingView } from './src/views/OnboardingView.js';
-import { renderHeader } from './src/components/Header.js';
+import { renderHeader, getAuthenticatedUserAvatar, getUserInitials } from './src/components/Header.js';
 import { renderFooter } from './src/components/Footer.js';
+import { auth } from './src/api.js';
 
 let passed = 0;
 let failed = 0;
@@ -57,6 +58,7 @@ store.toggleBookmark('elena-vance'); // reset back
 try {
   const exploreHtml = renderExploreCreatorsView();
   assert(exploreHtml.includes('Explore AI Creators') && exploreHtml.includes('Elena Vance'), 'Screen 1 (Explore Creators) renders successfully');
+  assert(!exploreHtml.includes('Where AI Creativity Meets Brands'), 'Tagline eyebrow is removed from Explore Creators view');
 } catch (e) {
   assert(false, `Screen 1 failed to render: ${e.message}`);
 }
@@ -92,10 +94,56 @@ try {
 try {
   const headerHtml = renderHeader('explore');
   const footerHtml = renderFooter();
-  assert(headerHtml.includes('ATELIER') && headerHtml.includes('Where AI Creativity Meets Brands'), 'Header includes Atelier and tagline');
+  assert(headerHtml.includes('ATELIER') && !headerHtml.includes('Where AI Creativity Meets Brands'), 'Header includes Atelier brand and tagline is completely removed');
   assert(footerHtml.includes('WHERE AI CREATIVITY MEETS BRANDS') && footerHtml.includes('KAMPUS.VC'), 'Footer includes tagline and Kampus.VC problem statement attribution');
 } catch (e) {
   assert(false, `Header/Footer failed to render: ${e.message}`);
+}
+
+// 5. Header Profile Picture, Fallback Initials & Accessibility Tests
+try {
+  // Test A: Authenticated Creator with avatar
+  auth.setUser({
+    id: 'elena-vance',
+    role: 'creator',
+    full_name: 'Elena Vance',
+    avatar_url: 'https://images.example/elena.jpg'
+  });
+  const creatorHeader = renderHeader('explore');
+  assert(creatorHeader.includes('header-avatar') && creatorHeader.includes('https://images.example/elena.jpg'), 'Header displays authenticated creator profile picture');
+  assert(creatorHeader.includes('title="Elena Vance"') && creatorHeader.includes('aria-label="Profile of Elena Vance"'), 'Header provides accessible tooltip and label with user name');
+  assert(creatorHeader.includes('badge-primary') && creatorHeader.includes('Creator'), 'Header preserves Creator role badge');
+  assert(creatorHeader.includes('header-logout-btn') && !creatorHeader.includes('>Elena Vance<'), 'Header preserves logout button and replaces visible text name with avatar');
+
+  // Test B: Authenticated Brand / Org with logo
+  auth.setUser({
+    id: 'brand-123',
+    role: 'brand',
+    full_name: 'Amay Sharma',
+    logo_url: 'https://images.example/brand-logo.png'
+  });
+  const brandHeader = renderHeader('dashboard');
+  assert(brandHeader.includes('header-avatar') && brandHeader.includes('https://images.example/brand-logo.png'), 'Header displays authenticated brand profile picture / logo');
+  assert(brandHeader.includes('badge-secondary') && brandHeader.includes('Brand / Org'), 'Header preserves Brand / Org role badge');
+  assert(brandHeader.includes('title="Amay Sharma"'), 'Header provides accessible label for brand user');
+
+  // Test C: Authenticated User with NO profile picture (fallback initials)
+  auth.setUser({
+    id: 'new-user',
+    role: 'brand',
+    full_name: 'Amay Sharma'
+  });
+  const fallbackHeader = renderHeader('explore');
+  assert(fallbackHeader.includes('header-avatar-fallback') && fallbackHeader.includes('<span>AS</span>'), 'Header displays polished fallback avatar with initials (AS) when no image exists');
+  assert(getUserInitials({ full_name: 'Amay Sharma' }) === 'AS', 'Initials helper computes AS correctly for Amay Sharma');
+  assert(getUserInitials({ full_name: 'Elena Vance' }) === 'EV', 'Initials helper computes EV correctly for Elena Vance');
+
+  // Clear auth session back to clean state
+  auth.clearToken();
+  const guestHeader = renderHeader('explore');
+  assert(guestHeader.includes('Sign In') && guestHeader.includes('Join Atelier'), 'Header renders guest auth CTA when not logged in');
+} catch (e) {
+  assert(false, `Top navigation avatar tests failed: ${e.message}`);
 }
 
 // 6. Auth, Onboarding & Creator Studio View Tests

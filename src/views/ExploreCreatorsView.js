@@ -119,10 +119,6 @@ export function renderExploreCreatorsView() {
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
           <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem;">
             <div style="max-width: 760px;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-secondary-gold); display: inline-block;"></span>
-                <span class="font-label-tag" style="color: var(--color-secondary); letter-spacing: 0.15em;">Where AI Creativity Meets Brands</span>
-              </div>
               <h1 class="font-display-hero" style="margin-bottom: 0.5rem;">Explore AI Creators</h1>
               <p class="font-body-lg" style="margin: 0;">
                 Discover world-class AI filmmakers, neural animators, and prompt directors ready for commercial briefs.
